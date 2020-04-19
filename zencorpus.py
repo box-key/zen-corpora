@@ -106,3 +106,11 @@ class CorpusTrie():
             'each sentence should be tokenized.'
         for sentence in corpus:
             self.insert(sentence)
+
+
+    # def save():
+    #
+    # @classmethod
+    # def load():
+    #
+    # def make_list():
