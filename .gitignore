@@ -1,0 +1,7 @@
+# test files
+.ipynb_checkpoints/
+*.ipynb
+
+
+# pycache
+__pycache__/
