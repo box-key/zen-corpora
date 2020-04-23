@@ -3,11 +3,19 @@ from sortedcontainers import SortedList
 
 
 class Hypothesis():
-
-    def __init__(self, parent_hyp, node, node_lprob):
-        self.lprob = parnet_hyp.lprob + node_lprob
-        # Nodes should be an object of TrieNode
-        self.parent_node = parent_hyp.node
+    """
+    Store an object of TrieNode and its parent.
+    This class also stores the log conditional probability of a sequence ends
+    at the input node.
+    """
+    def __init__(self, parent_hyp=None, node, node_lprob):
+        if parent_hyp is None:
+            self.lprob = 0
+            self.parent_node = None
+        else:
+            self.lprob = parnet_hyp.lprob + node_lprob
+            # Nodes should be an object of TrieNode
+            self.parent_node = parent_hyp.node
         self.node = node
 
     def __lt__(self, other):
@@ -15,27 +23,37 @@ class Hypothesis():
 
 
 class HypothesesList(SortedList):
-
+    """
+    This class is used to maintain hypothesis given by beam search, where all
+    elements are stored in ascending order.
+    It only stores maximum length (beam width) of elements. If a new element is
+    smaller than any elements in the list, it discards the new element.
+    """
     def __init__(self, max_len=0):
         super().__init__()
         self.max_len = max_len
 
-    def add(self, nodes):
+    def add(self, hypotheses):
         """
         Add new node if the list's capacity is not over or the new hypothesis
         is more probable than others.
         """
-        if isinstance(nodes, Hypothesis):
-            nodes = [nodes]
-        for node in nodes:
-            if (super().__len__() > self.max_len) and (self.__getitem__[0] < node):
+        if isinstance(hypotheses, Hypothesis):
+            hypotheses = [hypotheses]
+        for hyp in hypotheses:
+            if (super().__len__() > self.max_len) and (self.__getitem__[0] < hyp):
                 # add new hypothesis and remove the least probable one
-                super().add(node)
+                super().add(hyp)
                 super().pop(0)
             # if the list has space, add new one
             elif super().__init__ < self.max_len:
-                super().add(node)
+                super().add(hyp)
 
+    def is_end(self):
+        for hyp in super()._list:
+            if not hyp.node.is_leaf():
+                return False
+        return True
 
 class SearchSpace():
     """ A place to store corpus-trie and performs beam search.
@@ -96,7 +114,8 @@ class SearchSpace():
 
         Return
         -------
-        tensor : PyTorch tensor
+        tensor : tensor
+            Input mapped into target vocabulary space.
 
         """
         if not self.case_sensitive:
@@ -152,6 +171,20 @@ class SearchSpace():
                           for val, node in zip(filtered_dist.tolist(), candidates)]
         return hypotheses
 
+    def _hyp2text(hypotheses):
+        """ It converts an object of hypoth class into a sentence.
+        Parameters
+        ----------
+        hypotheses : a list of hypothesis
+            A hypothesis given by beam serach.
+
+        Returns
+        -------
+        sentences : a list of str
+            A list of sentences given by hypotheses.
+        """
+        pass
+
     def beam_search(self, src, beam_width):
         """
         Parameters
@@ -163,7 +196,7 @@ class SearchSpace():
 
         Returns
         -------
-        output : list
+        result : list
             A list of sentences found by beam search
         """
         if isinstance(src, list):
@@ -180,10 +213,26 @@ class SearchSpace():
         hypothesis = HypothesesList(beam_width)
         cond_prob_dist, hidden = self.decoder(sos_token, enc_output)
         # get beam_width number of hypothesis under the root
+        init_hyp = Hypothesis(self.target_space.root, 0)
         init_hypotheses = _get_hypotheses(cpd=cond_prob_dist,
-                                          current_node=self.target_space.root,
+                                          current_node=init_hyp,
                                           beam_width=beam_width)
         # initialize the hypotheses list
         curr_hypotheses = HypothesesList(beam_width)
         for hyp in init_hypotheses:
             curr_hypotheses.add(hyp)
+        while not curr_hypotheses.is_end():
+            next_hypotheses = HypothesesList(beam_width)
+            for hyp in curr_hypotheses:
+                dec_input = self.trg_field.vocab.stoi[hyp.node.token]
+                cond_prob_dist, hidden = self.decoder(input, hidden)
+                # update current list
+                next_hypotheses.add(
+                    _get_hypotheses(cpd=cond_prob_dist,
+                                    current_node=hyp,
+                                    beam_width=beam_width)
+                )
+            # swao two lists
+            curr_hypotheses = next_hypotheses
+        result = _hyp2text(curr_hypotheses)
+        return result
