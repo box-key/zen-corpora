@@ -1,0 +1,1 @@
+from .corpustrie import *
