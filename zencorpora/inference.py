@@ -144,10 +144,12 @@ class SearchSpace():
             hypotheses = [Hypothesis(parent_hyp=current_hyp,
                                      node=candidates[idx],
                                      node_lprob=val) \
-                            for val, idx in zip(values, indices)]
+                         for val, idx in zip(values.tolist(), indices.tolist())]
         else:
             hypotheses = [Hypothesis(parent_hyp=current_hyp,
-                                     node=)]
+                                     node=node,
+                                     node_lprob=val) \
+                          for val, node in zip(filtered_dist.tolist(), candidates)]
         return hypotheses
 
     def beam_search(self, src, beam_width):
