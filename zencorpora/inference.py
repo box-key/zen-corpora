@@ -157,18 +157,14 @@ class SearchSpace():
         # only retain tokens appear in candidates
         filtered_dist = cpd[token_id]
         # get the top element within beam_width
-        if filtered_dist.shape[0] > beam_width:
-            values, indices = torch.topk(filtered_dist, beam_width)
-            # generate new hypotheses
-            hypotheses = [Hypothesis(parent_hyp=current_hyp,
-                                     node=candidates[idx],
-                                     node_lprob=val) \
-                         for val, idx in zip(values.tolist(), indices.tolist())]
-        else:
-            hypotheses = [Hypothesis(parent_hyp=current_hyp,
-                                     node=node,
-                                     node_lprob=val) \
-                          for val, node in zip(filtered_dist.tolist(), candidates)]
+        # avoid index out of range error in torch.topk
+        k = beam_width if filtered_dist.shape[0] else filtered_dist.shape[0]
+        values, indices = torch.topk(filtered_dist, k)
+        # generate new hypotheses
+        hypotheses = [Hypothesis(parent_hyp=current_hyp,
+                                 node=candidates[idx],
+                                 node_lprob=val) \
+                     for val, idx in zip(values.tolist(), indices.tolist())]
         return hypotheses
 
     def _hyp2text(hypotheses):
