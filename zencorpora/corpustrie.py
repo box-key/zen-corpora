@@ -79,6 +79,8 @@ class CorpusTrie():
                 break
 
     def remove(self, sentence):
+        if not isinstance(sentence, list):
+            raise AttributeError('input sentence should be tokenized.')
         if self.__len__ == 0:
             return -1
         if not self.case_sensitive:

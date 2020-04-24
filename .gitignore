@@ -1,4 +1,5 @@
 # test files
+.pytest_cache
 .ipynb_checkpoints/
 *.ipynb
 *.txt
@@ -10,5 +11,5 @@ __pycache__/
 __pycache__/
 
 
-# temorarily
+# to be added later
 src/
