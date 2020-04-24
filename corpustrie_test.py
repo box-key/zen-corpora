@@ -4,7 +4,6 @@ import os
 from zencorpora.corpustrie import TrieNode, CorpusTrie
 
 
-
 class TestTrieNode:
 
     def test_overrides(self):

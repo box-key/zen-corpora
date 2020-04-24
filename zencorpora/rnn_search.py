@@ -1,4 +1,4 @@
-from zencorpora import CorpusTrie
+from zencorpora import CorpusTrie, TrieNode
 from sortedcontainers import SortedList
 
 
@@ -7,19 +7,41 @@ class Hypothesis():
     Store an object of TrieNode and its parent.
     This class also stores the log conditional probability of a sequence ends
     at the input node.
+
+    Attributes
+    ----------
+    node : TrieNode
+        A trie node at the current level.
+    lprob : float
+        The negative log probability of current sequence which ends at the node.
+    parent_hyp : Hypothesis
+        The parent of itself to recover sentence later.
     """
-    def __init__(self, parent_hyp=None, node, node_lprob):
+    def __init__(self, node, lprob=None, parent_hyp=None):
+        if not isinstance(node, TrieNode):
+            raise AttributeError("The node of this class should be TrieNode.")
         if parent_hyp is None:
             self.lprob = 0
-            self.parent_node = None
         else:
-            self.lprob = parnet_hyp.lprob + node_lprob
+            self.lprob = parent_hyp.lprob + lprob
             # Nodes should be an object of TrieNode
-            self.parent_node = parent_hyp.node
+        self.parent_hyp = parent_hyp
         self.node = node
 
     def __lt__(self, other):
         return self.lprob < other.lprob
+
+    def __repr__(self):
+        return str(self.lprob)
+
+    def trace_back(self):
+        curr_parent = self.parent_hyp
+        sentence = self.node.token
+        while curr_parent != None:
+            if curr_parent.node.token != '<root>':
+                sentence = curr_parent.node.token + ' ' + sentence
+            curr_parent = curr_parent.parent_hyp
+        return sentence
 
 
 class HypothesesList(SortedList):
@@ -40,17 +62,20 @@ class HypothesesList(SortedList):
         """
         if isinstance(hypotheses, Hypothesis):
             hypotheses = [hypotheses]
+        if not isinstance(hypotheses[0], Hypothesis):
+            raise AttributeError("This list only stores an object of Hypothesis.")
         for hyp in hypotheses:
-            if (super().__len__() > self.max_len) and (self.__getitem__[0] < hyp):
+            if (super().__len__() >= self.max_len) and (self.__getitem__(0) < hyp):
                 # add new hypothesis and remove the least probable one
-                super().add(hyp)
                 super().pop(0)
+                super().add(hyp)
             # if the list has space, add new one
-            elif super().__init__ < self.max_len:
+            elif super().__len__() < self.max_len:
                 super().add(hyp)
 
     def is_end(self):
-        for hyp in super()._list:
+        # iterate through list in parent class
+        for hyp in self:
             if not hyp.node.is_leaf():
                 return False
         return True
