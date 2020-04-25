@@ -104,11 +104,8 @@ class TestHypothesesList:
         list.add(hyps)
         assert len(list) == 5
         # check if the list is iterable
-        identical = True
         for h, l in zip(hyps, list):
-            if h != l:
-                identical = False
-        assert identical
+            assert h == l
 
     def test_capacity(self):
         """ Test if list maintains its maximum length """
@@ -121,11 +118,8 @@ class TestHypothesesList:
             list.add(hyp)
         assert len(list) == 5
         # list should store the 5 largest values, i.e. 95, ..., 99
-        ordered = True
         for l, i in zip(list, range(95, 100)):
-            if l.lprob != i:
-                ordered = False
-        assert ordered
+            assert l.lprob == i
 
     def test_isend(self):
         """ Test is end method (check searcher reaches the end of trie)"""
@@ -159,6 +153,13 @@ space = SearchSpace(
 
 class TestSearchSpace:
 
+    def test_target_space(self):
+        """ Make sure initializer constructs target space from input corpus """
+        target_corpus = space.target_space.make_list()
+        assert len(target_corpus) == 10
+        for t, d in zip(target_corpus, data.corpus):
+            assert t == d
+
     def test_text2tensor(self):
         """ Test text2tensor method """
         test = ['this', 'is', 'a', 'test']
@@ -173,11 +174,8 @@ class TestSearchSpace:
         assert tensor.shape[0] == 6
         assert tensor.shape[1] == 1
         # check each output
-        identical = True
         for t, o in zip(tensor, test_num):
-            if t != o:
-                identical = False
-        assert identical
+            assert t == o
         # check method for trg argument
         test_num = [space.trg_field.vocab.stoi[token] for token in test]
         sos = space.trg_field.vocab.stoi['<sos>']
@@ -195,5 +193,79 @@ class TestSearchSpace:
                 identical = False
         assert identical
 
+    def test_hyp2text(self):
+        """ Test hyp2text method """
+        text1 = ['this', 'is', 'test', 'code']
+        text2 = ['this', 'is', 'test']
+        text3 = ['it', 'aint']
+        texts = [' '.join(text1), ' '.join(text2), ' '.join(text3)]
+        hyp1 = self.text2hyp(text1)
+        hyp2 = self.text2hyp(text2)
+        hyp3 = self.text2hyp(text3)
+        # just make sure text2hyp works
+        assert round(float(repr(hyp1)), 1) == 0.4
+        assert round(float(repr(hyp2)), 1) == 0.3
+        hyps = [hyp1, hyp2, hyp3]
+        outs = space._hyp2text(hyps)
+        # make sure hyp2text returns the same number of sentences
+        assert len(outs) == 3
+        # make sure hyp2text recovers exactly the same sentences
+        identical = True
+        for o, t in zip(outs, texts):
+            if o != t:
+                identical = False
+        assert identical
+
+    def text2hyp(self, text):
+        curr_hyp = Hypothesis(node=TrieNode('<root>'))
+        for token in text:
+            next_hyp = Hypothesis(node=TrieNode(token),
+                                  lprob=0.1,
+                                  parent_hyp=curr_hyp)
+            curr_hyp = next_hyp
+        return curr_hyp
+
+
     def test_extract_top_hypotheses(self):
         """ Test get hypotheses method """
+        import torch
+        src = ['this', 'is', 'test']
+        # make encoder inputs
+        src_tensor = space._text2tensor(src, src=True)
+        src_len = torch.tensor([src_tensor.shape[0]])
+        # encode inputs
+        enc_output = space.encoder(src_tensor, src_len)
+        # initial decoding with <sos> token given src
+        sos_token = space.trg_field.vocab.stoi['<sos>']
+        sos_token = torch.zeros([1], dtype=torch.long) + sos_token
+        # generate prob dist over target vocabulary
+        cond_prob_dist, hidden = space.decoder(sos_token, enc_output)
+        init_hyp = Hypothesis(node=space.target_space.root)
+        # perform beam search
+        init_hypotheses = space._get_hypotheses(cpd=cond_prob_dist,
+                                                current_hyp=init_hyp,
+                                                beam_width=2)
+        # check beam search retains specified number of  hypotheses
+        assert len(init_hypotheses) == 2
+        init_hypotheses = space._get_hypotheses(cpd=cond_prob_dist,
+                                                current_hyp=init_hyp,
+                                                beam_width=4)
+        # check beam search retains 2 hypotheses
+        assert len(init_hypotheses) == 4
+        init_hypotheses = space._get_hypotheses(cpd=cond_prob_dist,
+                                                current_hyp=init_hyp,
+                                                beam_width=100)
+        # check beam search returns all elements
+        # if beam width exceeds next candidates
+        assert len(init_hypotheses) == 9
+        # check if beam search returns the top elements among candidates
+        candidates = space.target_space.root.children
+        init_hypotheses = space._get_hypotheses(cpd=cond_prob_dist,
+                                                current_hyp=init_hyp,
+                                                beam_width=2)
+        token_id = [space.trg_field.vocab.stoi[node.token] \
+                        for node in candidates]
+        cpd = cond_prob_dist.squeeze(0)
+        val, idx = torch.topk(cpd[token_id], 2)
+        for v, h in zip(val.tolist(), init_hypotheses):
+            assert round(v, 3) == round(float(repr(h)), 3)

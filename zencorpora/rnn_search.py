@@ -180,20 +180,22 @@ class SearchSpace():
         # map tokens into id in the vocabulary
         token_id = [self.trg_field.vocab.stoi[node.token] \
                         for node in candidates]
+        cpd = cpd.squeeze(0)
         # only retain tokens appear in candidates
         filtered_dist = cpd[token_id]
         # get the top element within beam_width
         # avoid index out of range error in torch.topk
-        k = beam_width if filtered_dist.shape[0] else filtered_dist.shape[0]
+        num_tokens = filtered_dist.shape[0]
+        k = beam_width if beam_width < num_tokens else num_tokens
         values, indices = torch.topk(filtered_dist, k)
         # generate new hypotheses
-        hypotheses = [Hypothesis(parent_hyp=current_hyp,
-                                 node=candidates[idx],
-                                 node_lprob=val) \
+        hypotheses = [Hypothesis(node=candidates[idx],
+                                 lprob=val,
+                                 parent_hyp=current_hyp) \
                      for val, idx in zip(values.tolist(), indices.tolist())]
         return hypotheses
 
-    def _hyp2text(hypotheses):
+    def _hyp2text(self, hypotheses):
         """ It converts an object of hypoth class into a sentence.
         Parameters
         ----------
@@ -205,7 +207,8 @@ class SearchSpace():
         sentences : a list of str
             A list of sentences given by hypotheses.
         """
-        pass
+        sentences = [hyp.trace_back() for hyp in hypotheses]
+        return sentences
 
     def beam_search(self, src, beam_width):
         """
@@ -230,12 +233,15 @@ class SearchSpace():
         src_len = torch.tensor([src_tensor.shape[0]]).to(self.device)
         # encode input text
         enc_output = self.encoder(src_tensor, src_len)
+        # enc_output = [n_layers, 1, enc_hid_dim]
         # get the first estimation given '<sos>' token
-        sos_token = self.trg_field.vocab.stoi['<sos>']
+        sos_token = space.trg_field.vocab.stoi['<sos>']
+        sos_token = torch.zeros([1], dtype=torch.long) + sos_token
         hypothesis = HypothesesList(beam_width)
         cond_prob_dist, hidden = self.decoder(sos_token, enc_output)
+
         # get beam_width number of hypothesis under the root
-        init_hyp = Hypothesis(self.target_space.root, 0)
+        init_hyp = Hypothesis(node=self.target_space.root)
         init_hypotheses = _get_hypotheses(cpd=cond_prob_dist,
                                           current_node=init_hyp,
                                           beam_width=beam_width)

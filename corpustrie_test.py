@@ -189,19 +189,13 @@ class TestCorpusTrie:
         reverse_corpus = trie.make_list()
         assert len(reverse_corpus) == 3
         # make sure it returns an identical corpus
-        identical = True
         for ori, rev in zip(corpus, reverse_corpus):
-            if ori != rev:
-                identical = False
-        assert identical
+            assert ori == rev
         # make sure returned list is case sensitive
-        trie = CorpusTrie(corpus=corpus, case_sensitive=False)
+        trie = CorpusTrie(corpus=corpus, case_sensitive=True)
         reverse_corpus = trie.make_list()
-        identical = True
         for ori, rev in zip(corpus, reverse_corpus):
-            if ori != rev:
-                identical = False
-        assert not identical
+            assert ori == rev
 
     def test_save_corpus(self):
         sen1 = ['He', 'has', 'a', 'dog']
