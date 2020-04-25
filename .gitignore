@@ -3,6 +3,8 @@
 .ipynb_checkpoints/
 *.ipynb
 *.txt
+.test
+data/
 
 
 # byte codes

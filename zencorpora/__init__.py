@@ -1,2 +1,2 @@
-from .corpustrie import TrieNode, CorpusTrie
+from .corpustrie import CorpusTrie
 from .rnn_search import SearchSpace

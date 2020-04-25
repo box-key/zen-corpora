@@ -1,6 +1,10 @@
-from zencorpora import CorpusTrie, TrieNode
+from .corpustrie import CorpusTrie, TrieNode
 from sortedcontainers import SortedList
 
+try:
+    import torch
+except ImportError:
+    raise ImportError("PyTorch is required, please run `pip install pytorch`")
 
 class Hypothesis():
     """
@@ -116,10 +120,6 @@ class SearchSpace():
                  device,
                  short_length_penalty=1,
                  case_sensitive=True):
-        try:
-            import torch
-        except ImportError:
-            raise ImportError("PyTorch is required, please run `pip install pytorch`")
         self.src_field= src_field
         self.trg_field = trg_field
         self.encoder = encoder
@@ -127,6 +127,7 @@ class SearchSpace():
         self.device = device
         self.score_function = score_function
         self.target_space = CorpusTrie(target_corpus, case_sensitive)
+        self.case_sensitive = case_sensitive
 
     def _text2tensor(self, sentence, src):
         """
@@ -152,7 +153,7 @@ class SearchSpace():
         else:
             sentence = sentence + [self.trg_field.eos_token]
             mapped = [self.trg_field.vocab.stoi[token] for token in sentence]
-        tensor = torch.LongTensor(mapped).to(self.deivce)
+        tensor = torch.LongTensor(mapped).to(self.device)
         # tensor = [sentence_len]
         tensor = tensor.unsqueeze(1)
         # tensor = [sentence_len, 1]

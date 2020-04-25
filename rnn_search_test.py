@@ -141,8 +141,59 @@ class TestHypothesesList:
         assert not list.is_end()
 
 
-class SearchSpace:
+from torch.nn.functional import log_softmax
+
+# Initialize SearchSpace and models
+from test.loader import DataLoader
+data = DataLoader()
+space = SearchSpace(
+    src_field = data.input_field,
+    trg_field = data.output_field,
+    encoder = data.model.encoder,
+    decoder = data.model.decoder,
+    target_corpus = data.corpus,
+    score_function = log_softmax,
+    device = data.device,
+)
+
+
+class TestSearchSpace:
 
     def test_text2tensor(self):
         """ Test text2tensor method """
-        pass
+        test = ['this', 'is', 'a', 'test']
+        # check method for src argument
+        test_num = [space.src_field.vocab.stoi[token] for token in test]
+        sos = space.src_field.vocab.stoi['<sos>']
+        eos = space.src_field.vocab.stoi['<eos>']
+        test_num = [sos] + test_num + [eos]
+        tensor = space._text2tensor(test, src=True)
+        # check shape of output tensor
+        # the shape should be [<eos> + 4 input tookens + <eos>, 1]
+        assert tensor.shape[0] == 6
+        assert tensor.shape[1] == 1
+        # check each output
+        identical = True
+        for t, o in zip(tensor, test_num):
+            if t != o:
+                identical = False
+        assert identical
+        # check method for trg argument
+        test_num = [space.trg_field.vocab.stoi[token] for token in test]
+        sos = space.trg_field.vocab.stoi['<sos>']
+        eos = space.trg_field.vocab.stoi['<eos>']
+        test_num = test_num + [eos]
+        tensor = space._text2tensor(test, src=False)
+        # check shape of output tensor
+        # the shape should be [<eos> + 4 input tookens + <eos>, 1]
+        assert tensor.shape[0] == 5
+        assert tensor.shape[1] == 1
+        # check each output
+        identical = True
+        for t, o in zip(tensor, test_num):
+            if t != o:
+                identical = False
+        assert identical
+
+    def test_extract_top_hypotheses(self):
+        """ Test get hypotheses method """
