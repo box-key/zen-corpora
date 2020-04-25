@@ -116,7 +116,8 @@ class Seq2Seq(nn.Module):
         # trg = [trg_len, batch_size]
         trg_len = trg.shape[0]
         batch_size = trg.shape[1]
-        prediction_seq = torch.zeros(trg_len, batch_size, self.decoder.output_dim).to(self.device)
+        prediction_seq = torch.zeros(trg_len, batch_size,
+                                     self.decoder.output_dim).to(self.device)
         # prediction_seq = [trg_len, batch_size, output_dim]
         hidden = self.encoder(keywords, keywords_len)
         # hidden = [n_layers, batch_size, enc_hid_dim]

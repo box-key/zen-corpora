@@ -66,6 +66,8 @@ class HypothesesList(SortedList):
         """
         if isinstance(hypotheses, Hypothesis):
             hypotheses = [hypotheses]
+        if len(hypotheses) == 0:
+            return
         if not isinstance(hypotheses[0], Hypothesis):
             raise AttributeError("This list only stores an object of Hypothesis.")
         for hyp in hypotheses:
@@ -176,6 +178,8 @@ class SearchSpace():
             the hypothesis (a sequence of tokens which ends at the node).
 
         """
+        if current_hyp.node.is_leaf():
+            return current_hyp
         candidates = current_hyp.node.children
         # map tokens into id in the vocabulary
         token_id = [self.trg_field.vocab.stoi[node.token] \
@@ -249,7 +253,7 @@ class SearchSpace():
                 dec_input = torch.tensor([dec_input],
                                          dtype=torch.long).to(self.device)
                 # generate probability distribution given current sequence
-                cond_prob_dist, hidden = self.decoder(input, hidden)
+                cond_prob_dist, hidden = self.decoder(dec_input, hidden)
                 # update current list
                 next_hypotheses.add(
                     self._get_hypotheses(cpd=cond_prob_dist,

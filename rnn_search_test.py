@@ -265,4 +265,17 @@ class TestSearchSpace:
     def test_beam_search(self):
         """ Test beam search method """
         src = ['this', 'is', 'test']
+        # check if it returns beam width number of sentences
         result = space.beam_search(src, 2)
+        assert len(result) == 2
+        # check again
+        result = space.beam_search(src, 4)
+        assert len(result) == 4
+        # check if it returns the maximum length if beam width exceeds trie size
+        result = space.beam_search(src, 1000)
+        assert len(result) == 10
+
+src = ['I', 'want', 'horror', 'movie']
+# check if it returns beam width number of sentences
+result = space.beam_search(src, 10)
+print(result)
