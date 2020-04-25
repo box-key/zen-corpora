@@ -237,35 +237,32 @@ class TestSearchSpace:
         enc_output = space.encoder(src_tensor, src_len)
         # initial decoding with <sos> token given src
         sos_token = space.trg_field.vocab.stoi['<sos>']
-        sos_token = torch.zeros([1], dtype=torch.long) + sos_token
+        sos_token = torch.tensor([sos_token], dtype=torch.long)
         # generate prob dist over target vocabulary
         cond_prob_dist, hidden = space.decoder(sos_token, enc_output)
         init_hyp = Hypothesis(node=space.target_space.root)
-        # perform beam search
+        # check _get_hypotheses method only returns probability of candidates
         init_hypotheses = space._get_hypotheses(cpd=cond_prob_dist,
-                                                current_hyp=init_hyp,
-                                                beam_width=2)
-        # check beam search retains specified number of  hypotheses
-        assert len(init_hypotheses) == 2
-        init_hypotheses = space._get_hypotheses(cpd=cond_prob_dist,
-                                                current_hyp=init_hyp,
-                                                beam_width=4)
-        # check beam search retains 2 hypotheses
-        assert len(init_hypotheses) == 4
-        init_hypotheses = space._get_hypotheses(cpd=cond_prob_dist,
-                                                current_hyp=init_hyp,
-                                                beam_width=100)
-        # check beam search returns all elements
-        # if beam width exceeds next candidates
+                                                current_hyp=init_hyp)
         assert len(init_hypotheses) == 9
-        # check if beam search returns the top elements among candidates
+        # if beam width exceeds next candidates
+        # make sure hypotheses list retains beam width number of hypotheses
+        list = HypothesesList(4)
+        list.add(init_hypotheses)
+        assert len(list) == 4
+        # check if list retains the top elements among candidates
         candidates = space.target_space.root.children
-        init_hypotheses = space._get_hypotheses(cpd=cond_prob_dist,
-                                                current_hyp=init_hyp,
-                                                beam_width=2)
         token_id = [space.trg_field.vocab.stoi[node.token] \
                         for node in candidates]
         cpd = cond_prob_dist.squeeze(0)
-        val, idx = torch.topk(cpd[token_id], 2)
-        for v, h in zip(val.tolist(), init_hypotheses):
-            assert round(v, 3) == round(float(repr(h)), 3)
+        val, idx = torch.topk(cpd[token_id], 4)
+        val = val.tolist()
+        # make the topk list ascending order
+        val.reverse()
+        for v, l in zip(val, list):
+            assert round(v, 3) == round(float(repr(l)), 3)
+
+    def test_beam_search(self):
+        """ Test beam search method """
+        src = ['this', 'is', 'test']
+        result = space.beam_search(src, 2)

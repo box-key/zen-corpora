@@ -4,7 +4,6 @@ import torch.nn as nn
 
 class Encoder(nn.Module):
 
-
     def __init__(self,
                  input_dim,
                  emb_dim,
@@ -26,7 +25,6 @@ class Encoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.device = device
 
-
     def forward(self, keywords, keywords_len):
         # keywords = [keywords_len, batch_size]
         embedded = self.embedding(keywords)
@@ -38,7 +36,6 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-
 
     def __init__(self,
                  input_dim,
@@ -65,13 +62,12 @@ class Decoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.device = device
 
-
-    def forward(self, input, hidden):
-        # input = [batch_size]
+    def forward(self, input_tensor, hidden):
+        # input_tensor = [batch_size]
         # hidden = [batch_size, hid_dim]
-        input = input.unsqueeze(0)
+        input_tensor = input_tensor.unsqueeze(0)
         # input = [1, batch_size]
-        embedded = self.embedding(input)
+        embedded = self.embedding(input_tensor)
         # embedded = [1, batch_size, emb_dim]
         output, hidden = self.rnn(embedded, hidden)
         # output = [1, batch_size, hid_dim]
@@ -82,7 +78,6 @@ class Decoder(nn.Module):
 
 
 class Seq2Seq(nn.Module):
-
 
     def __init__(self,
                  enc_input_dim,
@@ -115,7 +110,6 @@ class Seq2Seq(nn.Module):
         self.n_layers = n_layers
         self.device = device
 
-
     def forward(self, keywords, keywords_len, trg):
         # keywords_tuple = [keywords_len, batch_size]
         # keywords_len = [batch_size]
@@ -126,15 +120,15 @@ class Seq2Seq(nn.Module):
         # prediction_seq = [trg_len, batch_size, output_dim]
         hidden = self.encoder(keywords, keywords_len)
         # hidden = [n_layers, batch_size, enc_hid_dim]
-        input = trg[0,:]
+        input_tensor = trg[0,:]
         # input = [batch_size]
         for t in range(1, trg_len):
-            prediction, hidden = self.decoder(input, hidden)
+            prediction, hidden = self.decoder(input_tensor, hidden)
             # hidden = [n_layers, batch_size, dec_hid_dim]
             # prediction = [batch_size, output_dim]
             prediction_seq[t] = prediction
             # get the highest predicted token from prediction
             top_token =prediction.argmax(1)
-            input = top_token
+            input_tensor = top_token
             # input = [batch_size]
         return prediction_seq

@@ -159,7 +159,7 @@ class SearchSpace():
         # tensor = [sentence_len, 1]
         return tensor
 
-    def _get_hypotheses(self, cpd, current_hyp, beam_width):
+    def _get_hypotheses(self, cpd, current_hyp):
         """
         Parameters
         ----------
@@ -181,18 +181,13 @@ class SearchSpace():
         token_id = [self.trg_field.vocab.stoi[node.token] \
                         for node in candidates]
         cpd = cpd.squeeze(0)
-        # only retain tokens appear in candidates
+        # only retain the probability of tokens appear in candidates
         filtered_dist = cpd[token_id]
-        # get the top element within beam_width
-        # avoid index out of range error in torch.topk
-        num_tokens = filtered_dist.shape[0]
-        k = beam_width if beam_width < num_tokens else num_tokens
-        values, indices = torch.topk(filtered_dist, k)
         # generate new hypotheses
-        hypotheses = [Hypothesis(node=candidates[idx],
+        hypotheses = [Hypothesis(node=node,
                                  lprob=val,
                                  parent_hyp=current_hyp) \
-                     for val, idx in zip(values.tolist(), indices.tolist())]
+                      for val, node in zip(filtered_dist.tolist(), candidates)]
         return hypotheses
 
     def _hyp2text(self, hypotheses):
@@ -224,27 +219,24 @@ class SearchSpace():
         result : list
             A list of sentences found by beam search
         """
-        if isinstance(src, list):
+        if (not isinstance(src, list)) or (not isinstance(src[0], str)):
             raise AttributeError('Input sentence should be tokenized.')
         if not self.case_sensitive:
             src = [token.lower() for token in src]
         # map input text into tenser
-        src_tensor = _text2tensor(src)
+        src_tensor = self._text2tensor(src, src=True)
         src_len = torch.tensor([src_tensor.shape[0]]).to(self.device)
         # encode input text
         enc_output = self.encoder(src_tensor, src_len)
         # enc_output = [n_layers, 1, enc_hid_dim]
         # get the first estimation given '<sos>' token
-        sos_token = space.trg_field.vocab.stoi['<sos>']
-        sos_token = torch.zeros([1], dtype=torch.long) + sos_token
-        hypothesis = HypothesesList(beam_width)
+        sos_token = self.trg_field.vocab.stoi['<sos>']
+        sos_token = torch.tensor([sos_token], dtype=torch.long).to(self.device)
         cond_prob_dist, hidden = self.decoder(sos_token, enc_output)
-
         # get beam_width number of hypothesis under the root
         init_hyp = Hypothesis(node=self.target_space.root)
-        init_hypotheses = _get_hypotheses(cpd=cond_prob_dist,
-                                          current_node=init_hyp,
-                                          beam_width=beam_width)
+        init_hypotheses = self._get_hypotheses(cpd=cond_prob_dist,
+                                               current_hyp=init_hyp)
         # initialize the hypotheses list
         curr_hypotheses = HypothesesList(beam_width)
         for hyp in init_hypotheses:
@@ -252,15 +244,18 @@ class SearchSpace():
         while not curr_hypotheses.is_end():
             next_hypotheses = HypothesesList(beam_width)
             for hyp in curr_hypotheses:
+                # format current hypothesis
                 dec_input = self.trg_field.vocab.stoi[hyp.node.token]
+                dec_input = torch.tensor([dec_input],
+                                         dtype=torch.long).to(self.device)
+                # generate probability distribution given current sequence
                 cond_prob_dist, hidden = self.decoder(input, hidden)
                 # update current list
                 next_hypotheses.add(
-                    _get_hypotheses(cpd=cond_prob_dist,
-                                    current_node=hyp,
-                                    beam_width=beam_width)
+                    self._get_hypotheses(cpd=cond_prob_dist,
+                                         current_hyp=hyp)
                 )
             # swao two lists
             curr_hypotheses = next_hypotheses
-        result = _hyp2text(curr_hypotheses)
+        result = self._hyp2text(curr_hypotheses)
         return result
