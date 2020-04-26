@@ -206,7 +206,9 @@ class SearchSpace():
         sentences : a list of str
             A list of sentences given by hypotheses.
         """
-        sentences = [hyp.trace_back() for hyp in hypotheses]
+        # change the order of list into descending order
+        hypotheses = reversed(hypotheses)
+        sentences = [(hyp.trace_back(), hyp.lprob) for hyp in hypotheses]
         return sentences
 
     def beam_search(self, src, beam_width):

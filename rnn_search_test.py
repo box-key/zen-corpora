@@ -277,5 +277,5 @@ class TestSearchSpace:
 
 src = ['I', 'want', 'horror', 'movie']
 # check if it returns beam width number of sentences
-result = space.beam_search(src, 10)
+result = space.beam_search(src, 3)
 print(result)
