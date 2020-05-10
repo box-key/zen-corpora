@@ -121,7 +121,7 @@ class TestHypothesesList:
         # just to make sure it returns true
         list1.add([hyp1, hyp2, hyp4])
         assert list1 == list2
-        
+
 
 
     def test_add(self):
@@ -289,6 +289,18 @@ class TestSearchSpace:
 
     def test_beam_search(self):
         """ Test beam search method """
+        # Initialize SearchSpace with small corpus
+        from test.loader import DataLoader
+        data = DataLoader(small_corpus=True)
+        space = SearchSpace(
+            src_field = data.input_field,
+            trg_field = data.output_field,
+            encoder = data.model.encoder,
+            decoder = data.model.decoder,
+            target_corpus = data.corpus,
+            score_function = log_softmax,
+            device = data.device,
+        )
         src = ['this', 'is', 'test']
         # check if it returns beam width number of sentences
         result = space.beam_search(src, 2)
@@ -299,8 +311,32 @@ class TestSearchSpace:
         # check if it returns the maximum length if beam width exceeds trie size
         result = space.beam_search(src, 1000)
         assert len(result) == 10
+        # Initialize SearchSpace with large corpus
+        # This component takes a while to contruct space
+        from test.loader import DataLoader
+        data = DataLoader(small_corpus=False)
+        space = SearchSpace(
+            src_field = data.input_field,
+            trg_field = data.output_field,
+            encoder = data.model.encoder,
+            decoder = data.model.decoder,
+            target_corpus = data.corpus,
+            score_function = log_softmax,
+            device = data.device,
+        )
+        src = ['this', 'is', 'test']
+        # check if it returns beam width number of sentences
+        result = space.beam_search(src, 2)
+        assert len(result) == 2
+        # check again
+        result = space.beam_search(src, 4)
+        assert len(result) == 4
+        # check if it returns the maximum length if beam width exceeds trie size
+        result = space.beam_search(src, 1000)
+        assert len(result) == 1000
 
-# src = ['I', 'want', 'horror', 'movie']
+
+# src = ['I', 'like', 'see', 'horror']
 # # check if it returns beam width number of sentences
 # result = space.beam_search(src, 3)
 # print(result)

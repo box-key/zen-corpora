@@ -265,9 +265,8 @@ class SearchSpace():
                                                current_hyp=init_hyp)
         # initialize the hypotheses list
         curr_hypotheses = HypothesesList(beam_width)
-        for hyp in init_hypotheses:
-            curr_hypotheses.add(hyp)
-        while not curr_hypotheses.is_end():
+        curr_hypotheses.add(init_hypotheses)
+        while True:
             next_hypotheses = HypothesesList(beam_width)
             for hyp in curr_hypotheses:
                 # format current hypothesis
@@ -281,6 +280,9 @@ class SearchSpace():
                     self._get_hypotheses(cpd=cond_prob_dist,
                                          current_hyp=hyp)
                 )
+            # if two hypotheses lists are identical, nothing to search more
+            if curr_hypotheses == next_hypotheses:
+                break
             # swao two lists
             curr_hypotheses = next_hypotheses
         result = self._hyp2text(curr_hypotheses)
