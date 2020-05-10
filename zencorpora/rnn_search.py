@@ -21,6 +21,7 @@ class Hypothesis():
     parent_hyp : Hypothesis
         The parent of itself to recover sentence later.
     """
+
     def __init__(self, node, lprob=None, parent_hyp=None):
         if not isinstance(node, TrieNode):
             raise AttributeError("The node of this class should be TrieNode.")
@@ -55,6 +56,7 @@ class HypothesesList(SortedList):
     It only stores maximum length (beam width) of elements. If a new element is
     smaller than any elements in the list, it discards the new element.
     """
+
     def __init__(self, max_len=0):
         super().__init__()
         self.max_len = max_len
@@ -283,7 +285,7 @@ class SearchSpace():
             # if two hypotheses lists are identical, nothing to search more
             if curr_hypotheses == next_hypotheses:
                 break
-            # swao two lists
+            # update current hypotheses
             curr_hypotheses = next_hypotheses
         result = self._hyp2text(curr_hypotheses)
         return result
