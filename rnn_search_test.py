@@ -139,7 +139,7 @@ from torch.nn.functional import log_softmax
 
 # Initialize SearchSpace and models
 from test.loader import DataLoader
-data = DataLoader()
+data = DataLoader(small_corpus=True)
 space = SearchSpace(
     src_field = data.input_field,
     trg_field = data.output_field,
