@@ -59,6 +59,32 @@ class HypothesesList(SortedList):
         super().__init__()
         self.max_len = max_len
 
+    def __eq__(self, other):
+        """ Compare two hypotheses lists
+
+        Parameters
+        ----------
+        other : HypothesesList
+            A hypotheses list to compare to.
+
+        Return
+        ------
+            True if two lists contain identical hypothesis objects, otherwise
+            false.
+        """
+        if not isinstance(other, HypothesesList):
+            raise ValueError("Inputs are not comparable.")
+        # if both lists are empty, returns true
+        if (len(other) == 0) and (self.__len__() == 0):
+            return True
+        # if the lengths are not the same, returns False
+        if len(other) != self.__len__():
+            return False
+        for s, o in zip(super().__iter__(), other):
+            if s is not o:
+                return False
+        return True
+
     def add(self, hypotheses):
         """
         Add new node if the list's capacity is not over or the new hypothesis
@@ -69,7 +95,7 @@ class HypothesesList(SortedList):
         if len(hypotheses) == 0:
             return
         if not isinstance(hypotheses[0], Hypothesis):
-            raise AttributeError("This list only stores an object of Hypothesis.")
+            raise ValueError("This list only stores an object of Hypothesis.")
         for hyp in hypotheses:
             if (super().__len__() >= self.max_len) and (self.__getitem__(0) < hyp):
                 # add new hypothesis and remove the least probable one
@@ -220,7 +246,7 @@ class SearchSpace():
             A list of sentences found by beam search
         """
         if (not isinstance(src, list)) or (not isinstance(src[0], str)):
-            raise AttributeError('Input sentence should be tokenized.')
+            raise ValueError('Input sentence should be tokenized.')
         if not self.case_sensitive:
             src = [token.lower() for token in src]
         # map input text into tenser

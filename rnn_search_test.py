@@ -4,6 +4,16 @@ from zencorpora.rnn_search import SearchSpace, Hypothesis, HypothesesList
 from zencorpora.corpustrie import CorpusTrie, TrieNode
 
 
+def text2hyp(text):
+    curr_hyp = Hypothesis(node=TrieNode('<root>'))
+    for token in text:
+        next_hyp = Hypothesis(node=TrieNode(token),
+                              lprob=0.1,
+                              parent_hyp=curr_hyp)
+        curr_hyp = next_hyp
+    return curr_hyp
+
+
 class TestHypothesis:
 
     def test_overrides(self):
@@ -81,6 +91,38 @@ class TestHypothesesList:
         assert list.max_len == 5
         # check if an object inherits parent class correctly
         assert len(list) == 0
+
+    def test_eqaul(self):
+        """ Test __eq__ of HypothesesList class """
+        list1 = HypothesesList(5)
+        list2 = HypothesesList(5)
+        # if two lists are empty it retuns True
+        assert list1 == list2
+        # create dummy hypothesis objects
+        text1 = ['this', 'is', 'test', 'code']
+        text2 = ['this', 'is', 'test']
+        text3 = ['it', 'aint']
+        hyp1 = text2hyp(text1)
+        hyp2 = text2hyp(text2)
+        hyp3 = text2hyp(text3)
+        list1.add([hyp1, hyp2, hyp3])
+        list2.add([hyp1, hyp2])
+        # the length of lists are different
+        assert list1 != list2
+        # now, the two lists have identical elements
+        list2.add(hyp3)
+        assert list1 == list2
+        # make a dummy hypothesis that has the same text, but different from hyp3
+        hyp4 = text2hyp(text3)
+        list2.clear()
+        list2.add([hyp1, hyp2, hyp4])
+        assert list1 != list2
+        list1.clear()
+        # just to make sure it returns true
+        list1.add([hyp1, hyp2, hyp4])
+        assert list1 == list2
+        
+
 
     def test_add(self):
         """ Test add method """
@@ -183,9 +225,9 @@ class TestSearchSpace:
         text2 = ['this', 'is', 'test']
         text3 = ['it', 'aint']
         texts = [' '.join(text1), ' '.join(text2), ' '.join(text3)]
-        hyp1 = self.text2hyp(text1)
-        hyp2 = self.text2hyp(text2)
-        hyp3 = self.text2hyp(text3)
+        hyp1 = text2hyp(text1)
+        hyp2 = text2hyp(text2)
+        hyp3 = text2hyp(text3)
         # just make sure text2hyp stores correct log probability
         assert round(float(repr(hyp1)), 1) == 0.4
         assert round(float(repr(hyp2)), 1) == 0.3
@@ -258,7 +300,7 @@ class TestSearchSpace:
         result = space.beam_search(src, 1000)
         assert len(result) == 10
 
-src = ['I', 'want', 'horror', 'movie']
-# check if it returns beam width number of sentences
-result = space.beam_search(src, 3)
-print(result)
+# src = ['I', 'want', 'horror', 'movie']
+# # check if it returns beam width number of sentences
+# result = space.beam_search(src, 3)
+# print(result)
