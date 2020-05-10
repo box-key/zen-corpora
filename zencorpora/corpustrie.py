@@ -59,6 +59,8 @@ class CorpusTrie():
         return self.num_token
 
     def __contains__(self, sentence):
+        if not isinstance(sentence, list):
+            raise ValueError('input sentence should be tokenized.')
         if not self.case_sensitive:
             sentence = [token.lower() for token in sentence]
         curr_node = self.root
@@ -84,7 +86,7 @@ class CorpusTrie():
 
     def insert(self, sentence):
         if not isinstance(sentence, list):
-            raise AttributeError('input sentence should be tokenized.')
+            raise ValueError('input sentence should be tokenized.')
         if not self.case_sensitive:
             sentence = [token.lower() for token in sentence]
         curr_node = self.root
@@ -103,7 +105,7 @@ class CorpusTrie():
 
     def remove(self, sentence):
         if not isinstance(sentence, list):
-            raise AttributeError('input sentence should be tokenized.')
+            raise ValueError('input sentence should be tokenized.')
         if self.__len__ == 0:
             return -1
         if not self.case_sensitive:
@@ -144,9 +146,9 @@ class CorpusTrie():
 
     def update(self, corpus):
         if not isinstance(corpus, list):
-            raise AttributeError('corpus should be a list of sentences.')
+            raise ValueError('corpus should be a list of sentences.')
         if (not isinstance(corpus[0], list)):
-            raise AttributeError('input sentences should be tokenized.')
+            raise ValueError('input sentences should be tokenized.')
         for sentence in corpus:
             self.insert(sentence)
 

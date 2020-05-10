@@ -5,6 +5,7 @@
 *.txt
 .test
 data/
+example.py
 
 
 # byte codes
