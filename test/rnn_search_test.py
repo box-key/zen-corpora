@@ -1,5 +1,7 @@
 import pytest
 
+import os
+
 from zencorpora.rnn_search import SearchSpace, Hypothesis, HypothesesList
 from zencorpora.corpustrie import CorpusTrie, TrieNode
 
@@ -202,6 +204,35 @@ class TestSearchSpace:
         for t, d in zip(target_corpus, data.corpus):
             assert t == d
 
+    def test_init_target_space(self):
+        """ Test it constructs corpus trie by file path and corpus list """
+        data = DataLoader(small_corpus=False)
+        space1 = SearchSpace(
+            src_field = data.input_field,
+            trg_field = data.output_field,
+            encoder = data.model.encoder,
+            decoder = data.model.decoder,
+            target_corpus = data.corpus,
+            score_function = log_softmax,
+            device = data.device,
+        )
+        PATH_CORPUS_MASTER = os.path.join('test', 'data', 'search_space.csv')
+        space2 = SearchSpace(
+            src_field = data.input_field,
+            trg_field = data.output_field,
+            encoder = data.model.encoder,
+            decoder = data.model.decoder,
+            corpus_path = PATH_CORPUS_MASTER,
+            hide_progress = False,
+            score_function = log_softmax,
+            device = data.device,
+        )
+        # make sure load yields the same trie with list based construction
+        assert len(space1.target_space) == len(space2.target_space)
+        # make sure the trie contain the same number of sentencees with corpus
+        assert len(space1.target_space.make_list()) == len(space2.target_space.make_list())
+
+
     def test_input2tensor(self):
         """ Test input2tensor method """
         test = ['this', 'is', 'a', 'test']
@@ -309,10 +340,9 @@ class TestSearchSpace:
         result = space.beam_search(src, 4)
         assert len(result) == 4
         # check if it returns the maximum length if beam width exceeds trie size
-        result = space.beam_search(src, 1000)
+        result = space.beam_search(src, 100)
         assert len(result) == 10
         # Initialize SearchSpace with large corpus
-        # This component takes a while to contruct space
         from test.loader import DataLoader
         data = DataLoader(small_corpus=False)
         space = SearchSpace(
@@ -332,8 +362,8 @@ class TestSearchSpace:
         result = space.beam_search(src, 4)
         assert len(result) == 4
         # check if it returns the maximum length if beam width exceeds trie size
-        result = space.beam_search(src, 1000)
-        assert len(result) == 1000
+        result = space.beam_search(src, 100)
+        assert len(result) == 100
 
 
 # src = ['I', 'like', 'see', 'horror']

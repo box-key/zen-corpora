@@ -2,6 +2,7 @@ import pytest
 import os
 
 from zencorpora.corpustrie import TrieNode, CorpusTrie
+from test.loader import DataLoader
 
 
 class TestTrieNode:
@@ -209,3 +210,26 @@ class TestCorpusTrie:
         assert os.path.exists(file)
         # remove the test file
         os.remove(file)
+
+    def test_load_corpus(self):
+        # path to small corpus
+        PATH_CORPUS_SAMPLE = os.path.join('test', 'data', 'space_sample.csv')
+        # test load method
+        trie_test = CorpusTrie(corpus_path=PATH_CORPUS_SAMPLE)
+        loader = DataLoader(small_corpus=True)
+        trie_sample = CorpusTrie(corpus=loader.corpus)
+        # make sure load yields the same trie with list based construction
+        assert len(trie_test) == len(trie_sample)
+        # make sure the trie contain the same number of sentencees with corpus
+        assert len(trie_test.make_list()) == len(loader.corpus)
+        # path to large corpus
+        PATH_CORPUS_MASTER = os.path.join('test', 'data', 'search_space.csv')
+        # load corpus and show  prograress
+        trie_test_large = CorpusTrie(corpus_path=PATH_CORPUS_MASTER,
+                               hide_progress=False)
+        loader = DataLoader(small_corpus=False)
+        trie_sample_large = CorpusTrie(corpus=loader.corpus)
+        # make sure load yields the same trie with list based construction
+        assert len(trie_test_large) == len(trie_sample_large)
+        # make sure the trie contain the same number of sentencees with corpus
+        assert len(trie_test_large.make_list()) == len(trie_sample_large.make_list())

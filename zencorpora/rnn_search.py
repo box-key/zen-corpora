@@ -145,9 +145,11 @@ class SearchSpace():
                  trg_field,
                  encoder,
                  decoder,
-                 target_corpus,
                  score_function,
                  device,
+                 target_corpus=None,
+                 hide_progress=True,
+                 corpus_path=None,
                  short_length_penalty=1,
                  case_sensitive=True):
         self.src_field= src_field
@@ -156,7 +158,14 @@ class SearchSpace():
         self.decoder = decoder
         self.device = device
         self.score_function = score_function
-        self.target_space = CorpusTrie(target_corpus, case_sensitive)
+        if target_corpus is not None:
+            self.target_space = CorpusTrie(corpus=target_corpus,
+                                           hide_progress=hide_progress,
+                                           case_sensitive=case_sensitive)
+        if corpus_path is not None:
+            self.target_space = CorpusTrie(corpus_path=corpus_path,
+                                           hide_progress=hide_progress,
+                                           case_sensitive=case_sensitive)
         self.case_sensitive = case_sensitive
 
     def _input2tensor(self, sentence):

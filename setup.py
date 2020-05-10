@@ -23,7 +23,7 @@ setup(
         "beam search",
         "recurrent neural network"
     ],
-    install_requires=["sortedcontainers>=2.1"],
+    install_requires=["sortedcontainers>=2.1", "tqdm>=4.31"],
     classifiers=[
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.7",

@@ -1,3 +1,7 @@
+from tqdm import tqdm
+import csv
+
+
 class TrieNode():
 
     def __init__(self, token):
@@ -38,12 +42,18 @@ class TrieNode():
 
 class CorpusTrie():
 
-    def __init__(self, corpus=None, case_sensitive=False):
+    def __init__(self,
+                 corpus=None,
+                 corpus_path=None,
+                 hide_progress=True,
+                 case_sensitive=False):
         self.root = TrieNode('<root>')
         self.num_token = 0
         self.case_sensitive = case_sensitive
         if corpus is not None:
             self.update(corpus)
+        if corpus_path is not None:
+            self.load(corpus_path, hide_progress)
 
     def __len__(self):
         return self.num_token
@@ -58,6 +68,19 @@ class CorpusTrie():
                 return False
             curr_node = curr_node.get_child(idx)
         return True
+
+    def load(self, path, hide_progress):
+        with open(path, 'r', encoding='utf-8') as f:
+            file = csv.reader(f, delimiter=',')
+            corpus = [row[0].split() for row in file]
+        with tqdm(total=len(corpus) - 1,
+                  unit=' sentence',
+                  desc="Construct Corpus Trie",
+                  disable=hide_progress) as pbar:
+            for sentence in corpus[1:]:
+                self.insert(sentence)
+                pbar.update(1)
+
 
     def insert(self, sentence):
         if not isinstance(sentence, list):
