@@ -131,30 +131,24 @@ class SearchSpace():
         self.target_space = CorpusTrie(target_corpus, case_sensitive)
         self.case_sensitive = case_sensitive
 
-    def _text2tensor(self, sentence, src):
+    def _input2tensor(self, sentence):
         """
         Parameters
         ----------
         sentence : list
-            A tokenized sentence.
-        src : bool
-            To tell which field to be used.
+            A tokenized sentence input to the model.
 
         Return
         -------
         tensor : tensor
-            Input mapped into target vocabulary space.
+            A numericalized input sentence.
 
         """
         if not self.case_sensitive:
             sentence = [token.lower() for token in sentence]
-        if src:
-            sentence = [self.src_field.init_token] + \
-                       sentence + [self.src_field.eos_token]
-            mapped = [self.src_field.vocab.stoi[token] for token in sentence]
-        else:
-            sentence = sentence + [self.trg_field.eos_token]
-            mapped = [self.trg_field.vocab.stoi[token] for token in sentence]
+        sentence = [self.src_field.init_token] + \
+                    sentence + [self.src_field.eos_token]
+        mapped = [self.src_field.vocab.stoi[token] for token in sentence]
         tensor = torch.LongTensor(mapped).to(self.device)
         # tensor = [sentence_len]
         tensor = tensor.unsqueeze(1)
@@ -206,7 +200,7 @@ class SearchSpace():
         sentences : a list of str
             A list of sentences given by hypotheses.
         """
-        # change the order of list into descending order
+        # change the order of list to descending order
         hypotheses = reversed(hypotheses)
         sentences = [(hyp.trace_back(), hyp.lprob) for hyp in hypotheses]
         return sentences
@@ -230,7 +224,7 @@ class SearchSpace():
         if not self.case_sensitive:
             src = [token.lower() for token in src]
         # map input text into tenser
-        src_tensor = self._text2tensor(src, src=True)
+        src_tensor = self._input2tensor(src)
         src_len = torch.tensor([src_tensor.shape[0]]).to(self.device)
         # encode input text
         enc_output = self.encoder(src_tensor, src_len)

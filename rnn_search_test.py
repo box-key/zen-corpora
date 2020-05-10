@@ -160,15 +160,15 @@ class TestSearchSpace:
         for t, d in zip(target_corpus, data.corpus):
             assert t == d
 
-    def test_text2tensor(self):
-        """ Test text2tensor method """
+    def test_input2tensor(self):
+        """ Test input2tensor method """
         test = ['this', 'is', 'a', 'test']
         # check method for src argument
         test_num = [space.src_field.vocab.stoi[token] for token in test]
         sos = space.src_field.vocab.stoi['<sos>']
         eos = space.src_field.vocab.stoi['<eos>']
         test_num = [sos] + test_num + [eos]
-        tensor = space._text2tensor(test, src=True)
+        tensor = space._input2tensor(test)
         # check shape of output tensor
         # the shape should be [<eos> + 4 input tookens + <eos>, 1]
         assert tensor.shape[0] == 6
@@ -176,22 +176,6 @@ class TestSearchSpace:
         # check each output
         for t, o in zip(tensor, test_num):
             assert t == o
-        # check method for trg argument
-        test_num = [space.trg_field.vocab.stoi[token] for token in test]
-        sos = space.trg_field.vocab.stoi['<sos>']
-        eos = space.trg_field.vocab.stoi['<eos>']
-        test_num = test_num + [eos]
-        tensor = space._text2tensor(test, src=False)
-        # check shape of output tensor
-        # the shape should be [<eos> + 4 input tookens + <eos>, 1]
-        assert tensor.shape[0] == 5
-        assert tensor.shape[1] == 1
-        # check each output
-        identical = True
-        for t, o in zip(tensor, test_num):
-            if t != o:
-                identical = False
-        assert identical
 
     def test_hyp2text(self):
         """ Test hyp2text method """
@@ -202,19 +186,18 @@ class TestSearchSpace:
         hyp1 = self.text2hyp(text1)
         hyp2 = self.text2hyp(text2)
         hyp3 = self.text2hyp(text3)
-        # just make sure text2hyp works
+        # just make sure text2hyp stores correct log probability
         assert round(float(repr(hyp1)), 1) == 0.4
         assert round(float(repr(hyp2)), 1) == 0.3
-        hyps = [hyp1, hyp2, hyp3]
+        hyps = [hyp3, hyp2, hyp1]
+        # hyp2text reverses list in ascending order
         outs = space._hyp2text(hyps)
         # make sure hyp2text returns the same number of sentences
         assert len(outs) == 3
         # make sure hyp2text recovers exactly the same sentences
-        identical = True
+        # hyp2text contains tuples = (text, lprob)
         for o, t in zip(outs, texts):
-            if o != t:
-                identical = False
-        assert identical
+            assert o[0] == t
 
     def text2hyp(self, text):
         curr_hyp = Hypothesis(node=TrieNode('<root>'))
@@ -231,7 +214,7 @@ class TestSearchSpace:
         import torch
         src = ['this', 'is', 'test']
         # make encoder inputs
-        src_tensor = space._text2tensor(src, src=True)
+        src_tensor = space._input2tensor(src)
         src_len = torch.tensor([src_tensor.shape[0]])
         # encode inputs
         enc_output = space.encoder(src_tensor, src_len)
