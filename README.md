@@ -76,7 +76,7 @@ Left-to-Right Beam Text Search
 ------------------------------
 As shown in SmartReply paper by [Kannan et al. (2016)](https://www.kdd.org/kdd2016/papers/files/Paper_1069.pdf), corpus trie can be used to perform left-to-right beam search using RNN model.
 A model encodes input text, then it computes the probability of each pre-defined sentence in the searching space given the encoded input.
-However, this process is exhausting. What if we have 1 million sentences in the search space? Without beam search, a RNN model processes 1 million sentences.
+However, this process is exhaustive. What if we have 1 million sentences in the search space? Without beam search, a RNN model processes 1 million sentences.
 Thus, the authors used the corpus trie to perform a beam search for their pre-defined sentences. 
 The idea is simple, it starts search from the root of the trie. Then, it only retains beam width number of probable sentences at each level.
 
