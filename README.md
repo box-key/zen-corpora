@@ -23,7 +23,7 @@ corpus = ['I', 'have', 'a', 'pen',
           'I', 'have', 'a', 'cat',
           'I', 'have', 'a', 'tie',]
 ```
-It stores each sentence separately, but it's waste of the memory to store "I have a " 4 times.
+It stores each sentence separately, but it's wasting the memory by storing "I have a " 4 times.
 
 Zen-corpora solves this problem by storing sentences in a corpus-level trie. For example, the corpus above will be stored as 
 ```bash
