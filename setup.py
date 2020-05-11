@@ -13,7 +13,7 @@ setup(
     version=__version__,
     author="Kei Nemoto",
     author_email="kei.nemoto28@gmail.com",
-    description="corpus-level trie for beam search for pre-defined sentences",
+    description="corpus-level trie to store corpus efficiently and speed up sentence search",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/box-key/zen-corpora",
@@ -21,7 +21,8 @@ setup(
         "text search",
         "natural language understanding",
         "beam search",
-        "recurrent neural network"
+        "recurrent neural network",
+        "language modeling"
     ],
     install_requires=["sortedcontainers>=2.1", "tqdm>=4.31"],
     classifiers=[
