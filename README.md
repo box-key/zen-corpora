@@ -33,7 +33,7 @@ Zen-corpora solves this problem by storing sentences in a corpus-level trie. For
                 ├─ cat 
 	        └─ tie
 ```
-In this way, we would be able to save lots of memory space and sentence search can be a lot faster!
+In this way, we can save lots of memory space and sentence search can be a lot faster!
 
 Zen-corpora provides Python API to easily construct and interact with a corpus trie. See the following example:
 ```python
