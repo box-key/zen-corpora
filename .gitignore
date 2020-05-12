@@ -20,3 +20,4 @@ src/
 
 # dist
 *egg-info
+dist/
