@@ -37,7 +37,7 @@ In this way, we can save lots of memory space and sentence search can be a lot f
 
 Zen-corpora provides Python API to easily construct and interact with a corpus trie. See the following example:
 ```python
->>>from zencorpora import CorpusTrie
+>>> from zencorpora import CorpusTrie
 >>> corpus = [['I', 'have', 'a', 'pen'],
 ...           ['I', 'have', 'a', 'dog'],
 ...           ['I', 'have', 'a', 'cat'],
