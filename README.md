@@ -27,19 +27,11 @@ It stores each sentence separately, but it's wasting the memory by storing "I ha
 
 Zen-corpora solves this problem by storing sentences in a corpus-level trie. For example, the corpus above will be stored as
 ```bash
-<<<<<<< HEAD
 ├─ I ─ have ─ a
       	        ├─ pen
 		├─ dog
                 ├─ cat
 	        └─ tie
-=======
-├── I ── have ── a 
-      	         ├── pen
-		 ├── dog
-                 ├── cat 
-	         └── tie
->>>>>>> 61d1de816812db55339d85c6297dfdcfbf688a51
 ```
 In this way, we can save lots of memory space and sentence search can be a lot faster!
 
