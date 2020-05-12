@@ -37,37 +37,35 @@ In this way, we can save lots of memory space and sentence search can be a lot f
 
 Zen-corpora provides Python API to easily construct and interact with a corpus trie. See the following example:
 ```python
-from zencorpora import CorpusTrie
-
-
-corpus = [['I', 'have', 'a', 'pen'],
-          ['I', 'have', 'a', 'dog'],
-          ['I', 'have', 'a', 'cat'],
-          ['I', 'have', 'a', 'tie']]
+>>>from zencorpora import CorpusTrie
+>>> corpus = [['I', 'have', 'a', 'pen'],
+...           ['I', 'have', 'a', 'dog'],
+...           ['I', 'have', 'a', 'cat'],
+...           ['I', 'have', 'a', 'tie']]
 # construct trie
-trie = CorpusTrie(corpus=corpus)
+>>> trie = CorpusTrie(corpus=corpus)
 # returns the number of tokens in the trie
-print(len(trie))
+>>> print(len(trie))
 >>> 7
 # check if a trie contains the following sentences
-print(['I', 'have', 'a', 'pen'] in trie)
+>>> print(['I', 'have', 'a', 'pen'] in trie)
 >>> True
-print(['I', 'have', 'a', 'sen'] in trie)
+>>> print(['I', 'have', 'a', 'sen'] in trie)
 >>> False
 # insert a sentence
-trie.insert(['I', 'have', 'a', 'book'])
-print(['I', 'have', 'a', 'book'] in trie)
+>>> trie.insert(['I', 'have', 'a', 'book'])
+>>> print(['I', 'have', 'a', 'book'] in trie)
 >>> True
 # remove a sentence, returns 1 if a sentence exists
-print(trie.remove(['I', 'have', 'a', 'book']))
+>>> print(trie.remove(['I', 'have', 'a', 'book']))
 >>> 1
-print(['I', 'have', 'a', 'book'] in trie)
+>>> print(['I', 'have', 'a', 'book'] in trie)
 >>> False
 # returns -1 if sentence doesn't exist
-print(trie.remove(['I', 'have', 'a', 'caw']))
+>>> print(trie.remove(['I', 'have', 'a', 'caw']))
 >>> -1
 # it returns corpus as a list
-print(trie.make_list())
+>>> print(trie.make_list())
 >>> [['i', 'have', 'a', 'pen'], ['i', 'have', 'a', 'dog'], ['i', 'have', 'a', 'cat'], ['i', 'have', 'a', 'tie']]
 
 ```
@@ -82,39 +80,36 @@ The idea is simple, it starts search from the root of the trie. Then, it only re
 
 Zen-corpora provides a class to enable beam search. See the example below.
 ```python
-import torch.nn as nn
-import torch 
-
-from zencorpora import SearchSpace
-
-
+>>> import torch.nn as nn
+>>> import torch 
+>>> from zencorpora import SearchSpace
 # specify the path to corpus (right now it only accepts csv format)
-corpus_path = os.path.join('data', 'search_space.csv')
+>>> corpus_path = os.path.join('data', 'search_space.csv')
 # assume you already trained a gru model in PyTorch
 # search space can be constructed as follows
 # it shows a progress bar if you choose hide_progress = False
-space = SearchSpace(
-    src_field=data.input_field,
-    trg_field=data.output_field,
-    encoder=data.model.encoder,
-    decoder=data.model.decoder,
-    corpus_path=corpus_path,
-    hide_progress=False,
-    score_function=nn.functional.log_softmax,
-    device=torch.device('cpu'),
-)
+>>> space = SearchSpace(
+...    src_field=data.input_field,
+...    trg_field=data.output_field,
+...    encoder=data.model.encoder,
+...    decoder=data.model.decoder,
+...    corpus_path=corpus_path,
+...    hide_progress=False,
+...    score_function=nn.functional.log_softmax,
+...    device=torch.device('cpu'),
+... )
 >>> Construct Corpus Trie: 100%|████████████████████████████████████████| 34105/34105 [00:01<00:00, 21732.69 sentence/s]
 # Let's search!
-src = ['this', 'is', 'test']
-result = space.beam_search(src, 2)
-print(len(result))
+>>> src = ['this', 'is', 'test']
+>>> result = space.beam_search(src, 2)
+>>> print(len(result))
 >>> 2
 # it returns text with its score (log probability in this example)
-print(result)
+>>> print(result)
 >>> [('is this test?', 1.0), ('this is test!', 1.0)]
 # expand a beam width, assume your search space has more than 100 sentences
-result = space.beam_search(src, 100)
-print(len(result))
+>>> result = space.beam_search(src, 100)
+>>> print(len(result))
 >>> 100
 ```
 
