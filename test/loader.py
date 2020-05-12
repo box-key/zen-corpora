@@ -6,11 +6,11 @@ import csv
 from test.seq2seq_multilayer_gru_with_pad import Seq2Seq
 
 
-PATH_MODEL = os.path.join('test', 'data', 'seq2seq-multilayer-gru.pt')
-PATH_SRC_VOCAB = os.path.join('test', 'data', 'MASKED_TEXT.Field')
-PATH_TRG_VOCAB = os.path.join('test', 'data', 'TARGET_TEXT.Field')
-PATH_CORPUS_SAMPLE = os.path.join('test', 'data', 'space_sample.csv')
-PATH_CORPUS_MASTER = os.path.join('test', 'data', 'search_space.csv')
+PATH_MODEL = os.path.join('data', 'seq2seq-multilayer-gru.pt')
+PATH_SRC_VOCAB = os.path.join('data', 'MASKED_TEXT.Field')
+PATH_TRG_VOCAB = os.path.join('data', 'TARGET_TEXT.Field')
+PATH_CORPUS_SAMPLE = os.path.join('data', 'space_sample.csv')
+PATH_CORPUS_MASTER = os.path.join('data', 'search_space.csv')
 
 EMB_DIM = 256
 N_LAYER = 4

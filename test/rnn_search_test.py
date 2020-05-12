@@ -124,8 +124,6 @@ class TestHypothesesList:
         list1.add([hyp1, hyp2, hyp4])
         assert list1 == list2
 
-
-
     def test_add(self):
         """ Test add method """
         list = HypothesesList(5)
@@ -216,7 +214,7 @@ class TestSearchSpace:
             score_function = log_softmax,
             device = data.device,
         )
-        PATH_CORPUS_MASTER = os.path.join('test', 'data', 'search_space.csv')
+        PATH_CORPUS_MASTER = os.path.join('data', 'search_space.csv')
         space2 = SearchSpace(
             src_field = data.input_field,
             trg_field = data.output_field,

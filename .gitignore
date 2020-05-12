@@ -16,3 +16,7 @@ __pycache__/
 
 # to be added later
 src/
+
+
+# dist
+*egg-info

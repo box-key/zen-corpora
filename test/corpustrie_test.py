@@ -213,7 +213,7 @@ class TestCorpusTrie:
 
     def test_load_corpus(self):
         # path to small corpus
-        PATH_CORPUS_SAMPLE = os.path.join('test', 'data', 'space_sample.csv')
+        PATH_CORPUS_SAMPLE = os.path.join('data', 'space_sample.csv')
         # test load method
         trie_test = CorpusTrie(corpus_path=PATH_CORPUS_SAMPLE)
         loader = DataLoader(small_corpus=True)
@@ -223,7 +223,7 @@ class TestCorpusTrie:
         # make sure the trie contain the same number of sentencees with corpus
         assert len(trie_test.make_list()) == len(loader.corpus)
         # path to large corpus
-        PATH_CORPUS_MASTER = os.path.join('test', 'data', 'search_space.csv')
+        PATH_CORPUS_MASTER = os.path.join('data', 'search_space.csv')
         # load corpus and show  prograress
         trie_test_large = CorpusTrie(corpus_path=PATH_CORPUS_MASTER,
                                hide_progress=False)
