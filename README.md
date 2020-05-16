@@ -29,9 +29,9 @@ Zen-corpora solves this problem by storing sentences in a corpus-level trie. For
 ```bash
 |-- I -- have -- a
       	         |-- pen
-		             |-- dog
+		 |-- dog
                  |-- cat
-	               |-- tie
+	         |-- tie
 ```
 In this way, we can save lots of memory space and sentence search can be a lot faster!
 
