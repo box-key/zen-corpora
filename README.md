@@ -27,11 +27,11 @@ It stores each sentence separately, but it's wasting the memory by storing "I ha
 
 Zen-corpora solves this problem by storing sentences in a corpus-level trie. For example, the corpus above will be stored as
 ```bash
-├─ I ─ have ─ a
-      	        ├─ pen
-		├─ dog
-                ├─ cat
-	        └─ tie
+|-- I -- have -- a
+      	         |-- pen
+		             |-- dog
+                 |-- cat
+	               |-- tie
 ```
 In this way, we can save lots of memory space and sentence search can be a lot faster!
 
@@ -89,7 +89,7 @@ Zen-corpora provides a class to enable beam search. See the example below.
 ...    score_function=nn.functional.log_softmax,
 ...    device=torch.device('cpu'),
 ... ) # you can hide a progress bar by setting hide_progress = False
-Construct Corpus Trie: 100%|████████████████████████████████████████| 34105/34105 [00:01<00:00, 21732.69 sentence/s]
+Construct Corpus Trie: 100%|...| 34105/34105 [00:01<00:00, 21732.69 sentence/s]
 >>> src = ['this', 'is', 'test']
 >>> result = space.beam_search(src, 2)
 >>> print(len(result))
